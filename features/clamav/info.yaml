@@ -1,0 +1,7 @@
+# This subfeature can only be used with
+# its base feature: fedramp
+description: "ClamAV - Anti Virus Scanner"
+type: element
+features:
+  depends:
+    - fedramp

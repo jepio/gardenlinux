@@ -1,5 +1,5 @@
 [Unit]
-Description=Garden Linux CIS Firewall IPv6
+Description=Garden Linux Firewall IPv6
 DefaultDependencies=no
 After=systemd-sysctl.service
 Before=sysinit.target

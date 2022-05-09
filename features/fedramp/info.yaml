@@ -1,0 +1,7 @@
+description: "CIS Compliance"
+type: element
+features:
+  include:
+    - aide
+    - clamav
+    - firewall
