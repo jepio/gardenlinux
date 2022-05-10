@@ -188,3 +188,27 @@ def promote_step(
     )
 
     print(f'uploaded manifest-set: {manifest_path=}')
+
+
+if __name__ == "__main__":
+    # promote_single_step(
+    #     architecture='amd64',
+    #     cicd_cfg_name='default',
+    #     committish='229156b3c433a19d6e91cd6911d0f3b0b7fafc48',
+    #     gardenlinux_epoch='576',
+    #     modifiers='_nopkg,_prod,_readonly,_slim,base,cloud,gardener,server',
+    #     platform='ali',
+    #     publishing_actions='component_descriptor,images,manifests,release,release_candidate',
+    #     version='576.9'
+    # )
+
+
+    promote_step(
+        cicd_cfg_name='default',
+        committish='229156b3c433a19d6e91cd6911d0f3b0b7fafc48',
+        flavour_set_name='all',
+        gardenlinux_epoch='576',
+        promote_target='release',
+        publishing_actions='component_descriptor,images,manifests,release,release_candidate',
+        version='576.9'
+    )

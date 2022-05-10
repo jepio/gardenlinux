@@ -25,3 +25,11 @@ def release_step(
         git_helper=release._git_helper(giturl=giturl),
         giturl=giturl,
     )
+
+if __name__ == '__main__':
+    release_step(
+        committish='229156b3c433a19d6e91cd6911d0f3b0b7fafc48',
+        gardenlinux_epoch='576',
+        giturl='ssh://git@github.com/gardenlinux/gardenlinux',
+        publishing_actions='component_descriptor,images,manifests,release,release_candidate'
+    )

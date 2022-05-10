@@ -399,3 +399,17 @@ def _base_component_descriptor(
         ),
     )
     return base_descriptor_v2
+
+
+if __name__ == "__main__":
+    build_component_descriptor(
+        branch='main',
+        cicd_cfg_name='default',
+        committish='229156b3c433a19d6e91cd6911d0f3b0b7fafc48',
+        ctx_repository_config_name='gardener-dev',
+        flavour_set_name='all',
+        gardenlinux_epoch='576',
+        publishing_actions='component_descriptor,images,manifests,release,release_candidate',
+        snapshot_ctx_repository_config_name='gardener-public',
+        version='576.9'
+    )
