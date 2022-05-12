@@ -165,6 +165,9 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	else
 		part_uuid=$(echo "gardenlinux:$version:part_uuid:$source" | uuid_hash)
 		echo -e "$part_uuid\t$type\t$size\t$syslinux\t$file\t$label" >> "$([[ "$(cut -c -8 <<< "$target")" = "/overlay" ]] && echo "$overlay_partitions" || echo $partitions)"
+		if [[ "$target" = "/usr" ]] && [[ -n "$uuid" ]]; then
+		  source="#UUID=$uuid"
+		fi
 		echo "$source" "$target" "$fs" "$options" "$dump" "$pass" >> "$fstab"
 	fi
 
@@ -181,6 +184,13 @@ if [[ -z "$(cat "$root_hash")" ]]; then
 	cmdline="root=$root_source $cmdline"
 else
 	cmdline="roothash=$(cat "$root_hash") root=/dev/mapper/root $cmdline"
+fi
+if grep -q /usr "$fstab"; then
+	usrsrc=$(grep /usr "$fstab" | cut -f1 -d' '|| true)
+	usrsrc="${usrsrc#\#}"
+	usrfstype=$(grep /usr "$fstab" | cut -f3 -d' ' || true)
+	usrfsflags=$(grep /usr "$fstab" | cut -f4 -d' ' || true)
+	cmdline="$cmdline mount.usr=$usrsrc mount.usrfstype=$usrfstype mount.usrfsflags=$usrfsflags"
 fi
 
 if [ -s "$secureboot_partitions" ]; then

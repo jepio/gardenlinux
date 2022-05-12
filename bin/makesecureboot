@@ -86,6 +86,7 @@ esac
 cmdline_file=$(mktemp)
 echo "$cmdline" > "$cmdline_file"
 "${gnu_arch}-linux-gnu-objcopy" \
+	--add-section .osrel="$rootfs/etc/os-release" --change-section-vma .osrel=0x20000 \
 	--add-section .cmdline="$cmdline_file" --change-section-vma .cmdline=0x1000000 \
 	--add-section .linux="$kernel_file" --change-section-vma .linux=0x2000000 \
 	--add-section .initrd="$initrd" --change-section-vma .initrd="$initrd_vma" \
