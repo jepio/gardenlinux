@@ -39,7 +39,7 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	depth=$(echo "$line" | awk '{ print $2 }' | sed 's#^/\+##;s#/\+$##' | awk -F '/' '{ print NF }')
 	echo "$depth" "$line"
   done \
-| sort -k 1 -n -r \
+| sort -k 1nr \
 | while read -r depth source target fs options args; do
 	# parse extra fstab arguments to determine partition attributes
 	type=$([[ "$fs" = "swap" ]] && echo "swap" || echo "linux")
