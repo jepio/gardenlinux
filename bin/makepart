@@ -93,11 +93,11 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	fi
 
 	case "$fs" in
-		"ext4")
+		"ext4"|"ext3"|"ext2")
 			# set uuid and HTREE hash_seed to reproducible values instead of default random generated ones
 			uuid=${uuid:-$(echo "gardenlinux:$version:fs_uuid:$fs:$target" | uuid_hash)}
 			hash_seed=$(echo "gardenlinux:$version:ext4_hash_seed:$fs:$target" | uuid_hash)
-			mke2fs -t ext4 -b 4096 -E hash_seed="$hash_seed" -U "$uuid" ${label:+"-L"} ${label:+"$label"} -I 256 -d "$rootfs_work$target" "$file"
+			mke2fs -t "$fs" -b 4096 -E hash_seed="$hash_seed" -U "$uuid" ${label:+"-L"} ${label:+"$label"} -I 256 -d "$rootfs_work$target" "$file"
 
 			# set quota options and resize to minimum size needed for contents (when run on a file resize2fs automatically truncates)
 			tune2fs -Q usrquota,grpquota,prjquota "$file"
