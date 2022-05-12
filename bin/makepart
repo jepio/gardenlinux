@@ -185,6 +185,9 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	else
 		part_uuid=$(echo "gardenlinux:$version:part_uuid:$source" | uuid_hash)
 		echo -e "$part_uuid\t$type\t$size\t$syslinux\t$file\t$label" >&3
+		if [[ "$target" = "/usr" ]] && [[ -n "$uuid" ]]; then
+		  source="#UUID=$uuid"
+		fi
 		echo "$source" "$target" "$fs" "$options" "$dump" "$pass" >> "$fstab"
 	fi
   done
@@ -196,7 +199,15 @@ if [[ -z "$(cat "$root_hash")" ]]; then
 else
 	cmdline="roothash=$(cat "$root_hash") root=/dev/mapper/root $cmdline"
 fi
+if grep -q /usr "$fstab"; then
+	usrsrc=$(grep /usr "$fstab" | cut -f1 -d' '|| true)
+	usrsrc="${usrsrc#\#}"
+	usrfstype=$(grep /usr "$fstab" | cut -f3 -d' ' || true)
+	usrfsflags=$(grep /usr "$fstab" | cut -f4 -d' ' || true)
+	cmdline="$cmdline mount.usr=$usrsrc mount.usrfstype=$usrfstype mount.usrfsflags=$usrfsflags"
+fi
 
+echo "cmdline: $cmdline"
 initrd="$(mktemp)"
 unified_image="$(mktemp)"
 unified_image_signed="$(mktemp)"
@@ -228,12 +239,12 @@ rm "$rootfs/etc/veritytab"
 
 case "$arch" in
 	amd64)
-		uefi_arch=X64
+		uefi_arch=x64
 		gnu_arch=x86_64
 		initrd_vma=0x3000000
 		;;
 	arm64)
-		uefi_arch=AA64
+		uefi_arch=aa64
 		gnu_arch=aarch64
 		initrd_vma=0x4000000
 		;;
@@ -243,17 +254,21 @@ esac
 cmdline_file=$(mktemp)
 echo "$cmdline" > "$cmdline_file"
 "${gnu_arch}-linux-gnu-objcopy" \
+	--add-section .osrel="$rootfs/etc/os-release" --change-section-vma .osrel=0x20000 \
 	--add-section .cmdline="$cmdline_file" --change-section-vma .cmdline=0x1000000 \
 	--add-section .linux="$kernel_file" --change-section-vma .linux=0x2000000 \
 	--add-section .initrd="$initrd" --change-section-vma .initrd="$initrd_vma" \
-	"$rootfs/usr/lib/systemd/boot/efi/linux$(tr '[:upper:]' '[:lower:]' <<< "$uefi_arch").efi.stub" "$unified_image"
+	"$rootfs/usr/lib/systemd/boot/efi/linux$uefi_arch.efi.stub" "$unified_image"
 rm "$cmdline_file"
 
 # sign unified image
 datefudge -s "@$timestamp" sbsign --cert /kernel.crt --key /kernel.key --output "$unified_image_signed" "$unified_image"
 
 # copy unified image to uefi partition
-datefudge -s "@$timestamp" mcopy -i "$uefi_partition" -o -p "$unified_image_signed" "::/EFI/BOOT/BOOT$uefi_arch.EFI"
+datefudge -s "@$timestamp" mcopy -i "$uefi_partition" -o -p "$unified_image_signed" "::/EFI/Linux/GARDEN.EFI"
+
+# copy systemd bootloader
+datefudge -s "@$timestamp" mcopy -i "$uefi_partition" -o -p "$rootfs/usr/lib/systemd/boot/efi/systemd-boot$uefi_arch.efi" "::/EFI/BOOT/BOOT$(tr '[:lower:]' '[:upper:]' <<< "$uefi_arch").EFI"
 
 if [[ -f "$rootfs/usr/bin/syslinux" ]]; then
 	syslinux_conf="$(mktemp)"
