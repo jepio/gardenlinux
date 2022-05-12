@@ -142,6 +142,8 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 			uuid=${uuid:-$(echo "gardenlinux:$version:fs_uuid:$fs:$target" | uuid_hash)}
 			mkswap -U "$uuid" ${label:+"-L"} ${label:+"$label"} "$file"
 			;;
+		"none")
+			;;
 		*)
 			echo "filesystem type $fs not yet supported"
 			exit 1
