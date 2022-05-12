@@ -117,6 +117,8 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 		"swap")
 			make_reproducible_swap ${uuid:+"-u"} ${uuid:+"$uuid"} ${label:+"-l"} ${label:+"$label"} "$file"
 			;;
+		"none")
+			;;
 		*)
 			echo "filesystem type $fs not yet supported"
 			exit 1
