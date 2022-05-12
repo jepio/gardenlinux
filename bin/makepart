@@ -108,8 +108,8 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	fi
 
 	case "$fs" in
-		"ext4")
-			make_reproducible_ext4 -t "$timestamp" -h "gardenlinux:$version:partition:$target" ${uuid:+"-u"} ${uuid:+"$uuid"} ${label:+"-l"} ${label:+"$label"} -q -m -p 16 "$rootfs_work$target" "$file"
+		"ext4"|"ext3"|"ext2")
+			make_reproducible_ext4 -f "$fs" -t "$timestamp" -h "gardenlinux:$version:partition:$target" ${uuid:+"-u"} ${uuid:+"$uuid"} ${label:+"-l"} ${label:+"$label"} -q -m -p 16 "$rootfs_work$target" "$file"
 			;;
 		"vfat")
 			make_reproducible_vfat -t "$timestamp" -h "gardenlinux:$version:partition:$target" ${uuid:+"-u"} ${uuid:+"$uuid"} ${label:+"-l"} ${label:+"$label"} "$rootfs_work$target" "$file"

@@ -2,6 +2,7 @@
 
 set -Eeufo pipefail
 
+filesystem=ext4
 timestamp=0
 hash_prefix=ext4
 uuid=
@@ -12,6 +13,10 @@ size_padding=0
 
 while [ $# -gt 0 ]; do
 	case "$1" in
+		-f|--filesystem)
+			filesystem="$2"
+			shift 2
+			;;
 		-t|--timestamp)
 			timestamp="$2"
 			shift 2
@@ -56,7 +61,7 @@ shift 2
 # set uuid and HTREE hash_seed to reproducible values instead of default random generated ones
 uuid=${uuid:-$(echo -n "$hash_prefix:uuid" | uuid_hash)}
 hash_seed=$(echo -n "$hash_prefix:hash_seed" | uuid_hash)
-mke2fs -t ext4 -b 4096 -E hash_seed="$hash_seed" -U "$uuid" ${label:+"-L"} ${label:+"$label"} -I 256 -d "$source" "$target"
+mke2fs -t "$filesystem" -b 4096 -E hash_seed="$hash_seed" -U "$uuid" ${label:+"-L"} ${label:+"$label"} -I 256 -d "$source" "$target"
 
 if [ "$quota" = 1 ]; then
 	tune2fs -Q usrquota,grpquota,prjquota "$target"
