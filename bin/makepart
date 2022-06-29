@@ -18,6 +18,7 @@ timestamp=$(garden-version --epoch "$version")
 rootfs_work=$(mktemp -d)
 cp -a "$rootfs/." "$rootfs_work"
 mkdir -p "$rootfs_work/overlay"/{etc,var}/{upper,work}
+mkdir -p "$rootfs_work"/{etc,var}.work
 
 find "$rootfs_work/var/log/" -type f -delete
 
@@ -49,6 +50,7 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	size=
 	resize=1
 	verity=0
+	overlay=0
 	syslinux=$([[ "$(cut -c -5 <<< "$target")" = "/boot" ]] && [[ -f "$rootfs/usr/bin/syslinux" ]] && echo 1 || echo 0)
 	while IFS="=" read -r key value; do
 		case "$key" in
@@ -64,6 +66,9 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 				;;
 			"syslinux")
 				syslinux=1
+				;;
+			"overlay")
+				overlay=1
 				;;
 		esac
 	done < <(echo "$args" | tr "," "\n")
@@ -90,6 +95,13 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 		fi
 		column -t "$fstab" > "$rootfs_work/etc/fstab"
 		column -t "$veritytab" >> "$rootfs_work/etc/veritytab"
+	fi
+	if [[ "$depth" = 1 ]]; then
+		if [[ "$overlay" = 1 ]]; then
+			mv "$rootfs_work/etc" "$rootfs_work/usr/etc"
+			mv "$rootfs_work/var" "$rootfs_work/usr/var"
+			mkdir "$rootfs_work"/{etc,var}
+		fi
 	fi
 
 	case "$fs" in
@@ -127,6 +139,10 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 
 			if [[ "$target" = "/overlay" ]]; then
 				chcon system_u:object_r:default_t:s0 "$rootfs_work/overlay"
+			fi
+			if [[ "$target" = "/usr" && "$overlay" = 1 ]]; then
+				chcon system_u:object_r:default_t:s0 "$rootfs_work/etc"
+				chcon system_u:object_r:default_t:s0 "$rootfs_work/var"
 			fi
 			;;
 		"vfat")
@@ -199,15 +215,17 @@ if [[ -z "$(cat "$root_hash")" ]]; then
 else
 	cmdline="roothash=$(cat "$root_hash") root=/dev/mapper/root $cmdline"
 fi
-if grep -q /usr "$fstab"; then
-	usrsrc=$(grep /usr "$fstab" | cut -f1 -d' '|| true)
+usrline=$(awk '$2 == "/usr"' "$fstab")
+if [[ -n "$usrline" ]]; then
+	usrsrc=$(echo "$usrline" | cut -f1 -d' '|| true)
 	usrsrc="${usrsrc#\#}"
-	usrfstype=$(grep /usr "$fstab" | cut -f3 -d' ' || true)
-	usrfsflags=$(grep /usr "$fstab" | cut -f4 -d' ' || true)
-	cmdline="$cmdline mount.usr=$usrsrc mount.usrfstype=$usrfstype mount.usrfsflags=$usrfsflags"
+	usrfstype=$(echo "$usrline" | cut -f3 -d' ' || true)
+	usrfsflags=$(echo "$usrline" | cut -f4 -d' ' || true)
+	cmdline="$cmdline mount.usr=$usrsrc mount.usrfstype=$usrfstype mount.usrflags=$usrfsflags"
 fi
+#cmdline="$cmdline"
 
-echo "cmdline: $cmdline"
+echo "cmdline: $cmdline" | tr ' ' '\n'
 initrd="$(mktemp)"
 unified_image="$(mktemp)"
 unified_image_signed="$(mktemp)"
@@ -226,7 +244,7 @@ kernel_version="${kernel_file#*-}"
 chroot "$rootfs" dracut \
 	--force \
 	--kver "$kernel_version" \
-	--modules "bash dash systemd systemd-initrd systemd-repart systemd-veritysetup kernel-modules kernel-modules-extra terminfo udev-rules dracut-systemd base fs-lib shutdown" \
+	--modules "bash dash systemd systemd-initrd systemd-repart systemd-veritysetup kernel-modules kernel-modules-extra terminfo udev-rules dracut-systemd base fs-lib shutdown gardenflatcar-overlay" \
 	--install "/etc/veritytab" \
 	--reproducible \
 	"$initrd"
