@@ -136,6 +136,9 @@ kvm: build-environment cert/sign.pub
 	./build.sh $(BUILD_OPTS) --skip-build --features server,cloud,kvm $(BUILDDIR) $(VERSION)
 
 kvm-dev: build-environment cert/sign.pub
+	./build.sh $(BUILD_OPTS) --skip-build --features server,cloud,kvm,_dev $(BUILDDIR) $(VERSION)
+
+flatcar: build-environment cert/sign.pub
 	./build.sh $(BUILD_OPTS) --skip-build --features server,cloud,kvm,_flatcar,_dev $(BUILDDIR) $(VERSION)
 
 pxe: build-environment cert/sign.pub
