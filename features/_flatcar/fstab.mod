@@ -16,7 +16,7 @@ while read -r  source target fs options args; do
     echo "${source} ${target} ${fs} ${options} ${args}"
     continue
   else
-    echo "LABEL=USR-A ${target} ext2 ${options} ${args:+${args},}size=$size,type=$flatcar_rootfs"
+    echo "LABEL=USR-A ${target} ext2 ${options} ${args:+${args},}size=$size,type=$flatcar_rootfs,overlay"
     echo "LABEL=USR-B none none ${options},noauto ${args:+${args},}size=$size,type=$flatcar_rootfs"
   fi
 done
