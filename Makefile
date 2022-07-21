@@ -138,7 +138,7 @@ kvm-dev: build-environment $(SECUREBOOT_CRT)
 	./build.sh $(BUILD_OPTS) --skip-build --features server,cloud,kvm,_dev $(BUILDDIR) $(VERSION)
 
 flatcar: build-environment $(SECUREBOOT_CRT)
-	./build.sh $(BUILD_OPTS) --skip-build --features server,cloud,kvm,_flatcar,_dev $(BUILDDIR) $(VERSION)
+	./build.sh $(BUILD_OPTS) --skip-build --features server,cloud,kvm,_flatcar,_secureboot,_dev $(BUILDDIR) $(VERSION)
 
 pxe: build-environment $(SECUREBOOT_CRT)
 	./build.sh $(BUILD_OPTS) --skip-build --features metal,server,_pxe $(BUILDDIR) $(VERSION)
