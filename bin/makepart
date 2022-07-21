@@ -181,7 +181,9 @@ sed 's/#.*//;/^[[:blank:]]*$/d' \
 	else
 		part_uuid=$(echo "gardenlinux:$version:part_uuid:$source" | uuid_hash)
 		echo -e "$part_uuid\t$type\t$size\t$syslinux\t$file\t$label" >> "$([[ "$(cut -c -8 <<< "$target")" = "/overlay" ]] && echo "$overlay_partitions" || echo $partitions)"
-		if [[ "$target" = "/usr" ]] && [[ -n "$uuid" ]]; then
+		if [[ "$target" = "/usr" ]]; then
+		  # TODO: this is now internal to make_reproducible_ext4
+		  uuid=${uuid:-$(echo -n "gardenlinux:$version:partition:$target:ext4:uuid" | uuid_hash)}
 		  source="#UUID=$uuid"
 		fi
 		echo "$source" "$target" "$fs" "$options" "$dump" "$pass" >> "$fstab"
